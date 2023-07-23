@@ -1,9 +1,17 @@
 from dotenv import load_dotenv
 
+import logging
 import praw
 import os
 
-def access_reddit():
+def init_logger():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+    )
+    logging.info(f"Logger created.")
+
+def access_reddit(read_only=True):
     # Load environment variables from .env file
     load_dotenv()
 
@@ -19,24 +27,49 @@ def access_reddit():
     #       \nclient_secret: {CLIENT_SECRET_ENV}")
     
     # Access Reddit API
-    reddit = praw.Reddit(
-        username=REDDIT_USERNAME_ENV,
-        password=REDDIT_USERNAME_ENV,
-        client_id=CLIENT_ID_ENV,
-        client_secret=CLIENT_SECRET_ENV,
-        user_agent="reig"
-    )
-    reddit.read_only = True
+    try:
+        reddit = praw.Reddit(
+            username=REDDIT_USERNAME_ENV,
+            password=REDDIT_PASSWORD_ENV,
+            client_id=CLIENT_ID_ENV,
+            client_secret=CLIENT_SECRET_ENV,
+            user_agent="reig"
+        )
+        reddit.read_only = read_only
+        logging.info("Reddit API connection successful.")
+        return reddit
+    
+    except Exception as e:
+        logging.error(f"Error connecting to Reddit API: {e}")
+        return None
 
-    # Access a subreddit and posts
-    subreddit = reddit.subreddit("NatureIsFuckingLit")
+def access_subreddit(reddit, subreddit="NatureIsFuckingLit"):
+    # Access a subreddit
+    logging.info(f"Accessing subreddit: {subreddit}")
+    return reddit.subreddit(subreddit)
+
+def get_posts(subreddit):
     posts = subreddit.search(query="desert", sort='new', time_filter='all', limit=1)
 
     # Iterate through posts
     for post in posts:
         print(post.url)
 
-    return 0
-
 if __name__ == "__main__":
-    access_reddit()
+    # Init Logget
+    init_logger()
+
+    # Access Reddit API
+    reddit = access_reddit()
+    if not reddit:
+        logging.error("Reddit API connection failed. Exiting.")
+        exit(1)
+
+    # Access subreddit
+    subreddit = access_subreddit(reddit)
+
+    # Get posts
+    get_posts(subreddit)
+
+    # Successful exiting
+    exit(0)
