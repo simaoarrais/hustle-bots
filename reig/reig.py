@@ -7,9 +7,9 @@ def init_logger():
     # Initialize the logger with INFO log level and a specific log message format
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
+        format="[%(filename)s] %(asctime)s [%(levelname)s] %(message)s",
     )
-    logging.info(f"Logger created.")  # Log a message to indicate that the logger is created
+    logging.info("Logger created.")  # Log a message to indicate that the logger is created
 
 def access_reddit(read_only=True):
     # Load environment variables from .env file
