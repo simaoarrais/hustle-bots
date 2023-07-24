@@ -1,1 +1,1 @@
-# reig
+# reddit-module
