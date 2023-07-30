@@ -17,22 +17,18 @@ CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 
 def post_tweet(tweet_text):
     # Authenticate with Twitter API
-    auth = tweepy.OAuthHandler(API_KEY, API_SECRET)
-    auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+    client = tweepy.Client(consumer_key=API_KEY,
+                         consumer_secret=API_SECRET,
+                         access_token=ACCESS_TOKEN,
+                         access_token_secret=ACCESS_TOKEN_SECRET)
 
-    # Create the API object
-    api = tweepy.API(auth)
-
-    try:
-        # Post the tweet
-        api.update_status(tweet_text)
-        print("Tweet posted successfully!")
-    except tweepy.TweepError as e:
-        print("Error posting tweet:", e)
+    # Post the tweet
+    client.create_tweet(text=tweet_text)
+    print("Tweet posted successfully!")
 
 if __name__ == "__main__":
     # Your tweet text here
-    tweet_text = "Hello, this is a test tweet using Tweepy in Python! #Python #Tweepy #TwitterAPI"
+    tweet_text = "Hello, this is a test tweet using Tweepy in Python!\n #Python #Tweepy #TwitterAPI"
     
     # Post the tweet
     post_tweet(tweet_text)
