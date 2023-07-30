@@ -16,15 +16,20 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 
 def post_tweet(tweet_text):
-    # Authenticate with Twitter API
-    client = tweepy.Client(consumer_key=API_KEY,
-                         consumer_secret=API_SECRET,
-                         access_token=ACCESS_TOKEN,
-                         access_token_secret=ACCESS_TOKEN_SECRET)
+    try:
+        # Authenticate with Twitter API
+        client = tweepy.Client(bearer_token=BEARER_TOKEN,
+                            consumer_key=API_KEY,
+                            consumer_secret=API_SECRET,
+                            access_token=ACCESS_TOKEN,
+                            access_token_secret=ACCESS_TOKEN_SECRET)
 
-    # Post the tweet
-    client.create_tweet(text=tweet_text)
-    print("Tweet posted successfully!")
+        # Post the tweet
+        response = client.create_tweet(text=tweet_text)
+        print("Tweet posted successfully!")
+    except Exception as e:
+        print(e)
+
 
 if __name__ == "__main__":
     # Your tweet text here
