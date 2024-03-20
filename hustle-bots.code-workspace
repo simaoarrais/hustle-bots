@@ -26,7 +26,7 @@
 			  "splitTerminals": [
 				{
 				  "name": "Discord",
-				  "commands": ["cd scripts/", "source venv/bin/activate", "python3 discord_module.py"]
+				  "commands": ["cd scripts/", "source venv/bin/activate", "clean", "python3 discord_module.py"]
 				}
 			  ]
 			},
@@ -35,7 +35,7 @@
 				"splitTerminals": [
 				  {
 					"name": "Other",
-					"commands": ["cd scripts/", "source venv/bin/activate"]
+					"commands": ["cd scripts/", "source venv/bin/activate", "clean"]
 				  }
 				]
 			  }
