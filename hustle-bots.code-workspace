@@ -13,31 +13,24 @@
 		},
 	
 		// Restore Terminals
-		// "restoreTerminals.terminals": [
-		// 	{
-		// 	  "splitTerminals": [
-		// 		{
-		// 		  "name": "RED",
-		// 		  "commands": ["cd reddit_module/", "source venv/bin/activate"]
-		// 		},
-		// 		{
-		// 		  "name": "DC",
-		// 		  "commands": ["cd discord_module/", "source venv/bin/activate"]
-		// 		}
-		// 	  ]
-		// 	},
-		// 	{
-		// 	  "splitTerminals": [
-		// 		{
-		// 		  "name": "X",
-		// 		  "commands": ["cd twitter_module/", "source venv/bin/activate"]
-		// 		},
-		// 		{
-		// 		  "name": "INSTA",
-		// 		  "commands": ["cd instagram_module/", "source venv/bin/activate"]
-		// 		}
-		// 	  ]
-		// 	}
-		//   ]
+		"restoreTerminals.terminals": [
+			{
+				"splitTerminals": [
+				  {
+					"name": "Git"
+				  }
+				]
+			},
+
+			{
+			  "splitTerminals": [
+				{
+				  "name": "Discord",
+				  "commands": ["cd scripts/", "source venv/bin/activate", "python3 discord_module.py"]
+				}
+			  ]
+			}
+		]
+
 	}
 }
