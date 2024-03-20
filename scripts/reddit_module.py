@@ -77,14 +77,4 @@ def get_top_posts(subreddit, threshold=1000, n_posts=5, search_limit=15):
         }
         posts_data.append(post_data)
 
-    # Convert the list of post dictionaries to a JSON-formatted string
-    json_data = json.dumps(posts_data, indent=4)
-
-    return json_data
-
-if __name__ == "__main__":
-    init_logger()
-    reddit_client = access_reddit()
-    subreddit = access_subreddit(reddit_client, subreddit='NatureIsFuckingLit')
-    top_posts_above_threshold = get_top_posts(subreddit, threshold=1000, n_posts=5, search_limit=5)
-    utils.save_json_file('test.json', top_posts_above_threshold)
+    return posts_data
