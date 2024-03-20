@@ -7,13 +7,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Access environment variables required for Reddit API authentication
-BEARER_TOKEN = str(os.getenv('BEARER_TOKEN'))
-API_KEY = str(os.getenv('API_KEY'))
-API_SECRET = str(os.getenv('API_SECRET'))
-ACCESS_TOKEN = str(os.getenv('ACCESS_TOKEN'))
-ACCESS_TOKEN_SECRET = str(os.getenv('ACCESS_TOKEN_SECRET'))
-CLIENT_ID = str(os.getenv('CLIENT_ID'))
-CLIENT_SECRET = str(os.getenv('CLIENT_SECRET'))
+BEARER_TOKEN = str(os.getenv('X_BEARER_TOKEN'))
+API_KEY = str(os.getenv('X_API_KEY'))
+API_SECRET = str(os.getenv('X_API_SECRET'))
+ACCESS_TOKEN = str(os.getenv('X_ACCESS_TOKEN'))
+ACCESS_TOKEN_SECRET = str(os.getenv('X_ACCESS_TOKEN_SECRET'))
+CLIENT_ID = str(os.getenv('X_CLIENT_ID'))
+CLIENT_SECRET = str(os.getenv('X_CLIENT_SECRET'))
 
 def post_tweet(tweet_text):
    

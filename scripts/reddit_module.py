@@ -2,8 +2,7 @@ import logging
 import praw
 import json
 import os
-
-import importlib.util
+import utils
 
 from dotenv import load_dotenv
 
@@ -21,9 +20,9 @@ def access_reddit(read_only=True):
 
     # Access environment variables required for Reddit API authentication
     REDDIT_USERNAME_ENV = os.getenv("REDDIT_USERNAME")
-    REDDIT_PASSWORD_ENV = os.getenv("REDDIT_PASSWORD")
-    CLIENT_ID_ENV = os.getenv("CLIENT_ID")
-    CLIENT_SECRET_ENV = os.getenv("CLIENT_SECRET")
+    REDDIT_PASSWORD_ENV = os.getenv("REDDIT_REDDIT_PASSWORD")
+    CLIENT_ID_ENV = os.getenv("REDDIT_CLIENT_ID")
+    CLIENT_SECRET_ENV = os.getenv("REDDIT_CLIENT_SECRET")
 
     # Access Reddit API with the provided credentials
     try:
@@ -82,3 +81,10 @@ def get_top_posts(subreddit, threshold=1000, n_posts=5, search_limit=15):
     json_data = json.dumps(posts_data, indent=4)
 
     return json_data
+
+if __name__ == "__main__":
+    init_logger()
+    reddit_client = access_reddit()
+    subreddit = access_subreddit(reddit_client, subreddit='NatureIsFuckingLit')
+    top_posts_above_threshold = get_top_posts(subreddit, threshold=1000, n_posts=5, search_limit=5)
+    utils.save_json_file('test.json', top_posts_above_threshold)

@@ -3,14 +3,21 @@ import json
 
 def create_output_folder():
     """Create the 'output' folder if it doesn't exist."""
-    output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    output_folder = os.path.join(current_dir, '..', 'output')
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
+
+def read_json_file(filename):
+    with open(filename, 'r') as file:
+        data = json.load(file)
+    return data
 
 def save_json_file(file_name, file_data):
     create_output_folder()
 
-    output_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    output_folder = os.path.join(current_dir, '..', 'output')  # Move up one directory to 'hustle-bots'
     file_path = os.path.join(output_folder, file_name)
 
     if os.path.exists(file_path):
