@@ -5,12 +5,6 @@ import os
 
 import importlib.util
 
-# Specify the full path to utils.py
-utils_path = '../utils.py'
-spec = importlib.util.spec_from_file_location("utils", utils_path)
-utils_module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(utils_module)
-
 from dotenv import load_dotenv
 
 def init_logger():
@@ -38,14 +32,14 @@ def access_reddit(read_only=True):
             password=REDDIT_PASSWORD_ENV,
             client_id=CLIENT_ID_ENV,
             client_secret=CLIENT_SECRET_ENV,
-            user_agent="reig"
+            user_agent="RedXIg"
         )
         reddit.read_only = read_only
         logging.info("Reddit API connection successful.")  # Log a message when the connection is successful
         return reddit
     
     except Exception as e:
-        logging.error("Error connecting to Reddit API: %s", e)  # Log an error message with the specific exception
+        logging.error("Reddit API connection failed. Exiting.")  # Log an error message if the Reddit API connection fails
         return None
 
 def access_subreddit(reddit, subreddit="NatureIsFuckingLit"):
@@ -68,13 +62,9 @@ def get_top_posts(subreddit, threshold=1000, n_posts=5, search_limit=15):
             # Check if the post's score is above the threshold and if it is not a video
             top_posts_above_threshold.append(post)
             logging.info("Post URL: %s | Score: %d", post.url, post.score)  # Log the URL and score of each valid post
-
-    return top_posts_above_threshold
-
-def save_posts(top_posts, filename="0"):
+    
     posts_data = []
-
-    for post in top_posts:
+    for post in top_posts_above_threshold:
         post_data = {
             "title": post.title,
             "score": post.score,
@@ -90,32 +80,5 @@ def save_posts(top_posts, filename="0"):
 
     # Convert the list of post dictionaries to a JSON-formatted string
     json_data = json.dumps(posts_data, indent=4)
-    
-    # Write the JSON string to the specified file
-    with open(filename, 'w') as file:
-        file.write(json_data)
 
-def main():
-    # Initialize the logger
-    init_logger()
-
-    # Access Reddit API
-    reddit = access_reddit()
-    if not reddit:
-        logging.error("Reddit API connection failed. Exiting.")  # Log an error message if the Reddit API connection fails
-        exit(1)
-
-    # Access subreddit
-    subreddit = access_subreddit(reddit)
-
-    # Get posts
-    top_posts_above_threshold = get_top_posts(subreddit, threshold=1000, n_posts=5, search_limit=5)
-
-    # Save posts
-    save_posts(top_posts_above_threshold, filename="test.json")
-
-    # Successful exiting
-    exit(0)  # Log an INFO message to indicate successful exiting of the program
-
-if __name__ == "__main__":
-    main()
+    return json_data

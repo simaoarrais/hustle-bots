@@ -4,5 +4,40 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"workbench.editorAssociations": {
+			"*.pdf": "default"
+		},
+		"cSpell.customDictionaries": {
+	
+		},
+	
+		// Restore Terminals
+		"restoreTerminals.terminals": [
+			{
+			  "splitTerminals": [
+				{
+				  "name": "RED",
+				  "commands": ["cd reddit_module/", "source venv/bin/activate"]
+				},
+				{
+				  "name": "DC",
+				  "commands": ["cd discord_module/", "source venv/bin/activate"]
+				}
+			  ]
+			},
+			{
+			  "splitTerminals": [
+				{
+				  "name": "X",
+				  "commands": ["cd twitter_module/", "source venv/bin/activate"]
+				},
+				{
+				  "name": "INSTA",
+				  "commands": ["cd instagram_module/", "source venv/bin/activate"]
+				}
+			  ]
+			}
+		  ]
+	}
 }
