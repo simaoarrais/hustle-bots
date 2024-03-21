@@ -1,100 +1,73 @@
 import discord
 import os
-import utils
-
 from dotenv import load_dotenv
-from logger import init_logger
+from logger import CustomLogger
+import utils
+from reddit_module import RedditClass
 
-# Load environment
-env_path = '../.env'
-load_dotenv(env_path)
+class DiscordClass:
+    def __init__(self):
+        self.discord_token = os.getenv('DISCORD_TOKEN')
+        self.logger = CustomLogger().get_logger()
 
-# Discord
-DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+    def init_discord_client(self):
+        intents = discord.Intents.default()
+        intents.message_content = True
+        self.client = discord.Client(intents=intents)
 
-# Instagram
-INSTA_USERNAME = os.getenv('INSTA_USERNAME')
-INSTA_PASSWORD = os.getenv('INSTA_PASSWORD')
+        @self.client.event
+        async def on_ready():
+            self.logger.info(f'{self.client.user} is logged in, waiting for requests.')
 
-# Reddit
-REDDIT_USERNAME = os.getenv('REDDIT_USERNAME')
-REDDIT_PASSWORD = os.getenv('REDDIT_PASSWORD')
-REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID')
-REDDIT_CLIENT_SECRET = os.getenv('REDDIT_CLIENT_SECRET')
+        @self.client.event
+        async def on_message(message):
+            # Apply lower case to message
+            message.content = message.content.lower()
 
-# X
-X_BEARER_TOKEN = os.getenv('X_BEARER_TOKEN')
-X_API_KEY = os.getenv('X_API_KEY')
-X_API_SECRET = os.getenv('X_API_SECRET')
-X_ACCESS_TOKEN = os.getenv('X_ACCESS_TOKEN')
-X_ACCESS_TOKEN_SECRET = os.getenv('X_ACCESS_TOKEN_SECRET')
-X_CLIENT_ID = os.getenv('X_CLIENT_ID')
-X_CLIENT_SECRET = os.getenv('X_CLIENT_SECRET')
+            # Catch if bot is the messenger
+            if message.author == self.client.user:
+                return
 
-# LOGGER
-global LOGGER 
-global console_handler
+            ## Check for channel
+            if message.channel.name == 'redxig':
 
-# Initialize Discord client
-def init_discord_client(DISCORD_TOKEN):
-    intents = discord.Intents.default()
-    intents.message_content = True
-    client = discord.Client(intents=intents)
+                ## Simple hello 
+                if message.content.startswith('hello'):
+                    await message.channel.send('Hello!')
 
-    @client.event
-    async def on_ready():
-        LOGGER.info(f'{client.user} is logged in.')
+                ## Init Reddit
+                if message.content.startswith('init reddit'):
+                    await message.channel.send('Reddit!')
 
-    @client.event
-    async def on_message(message):
-        # Apply lower case to message
-        message.content = message.content.lower()
+                elif message.content.startswith('give'):
+                    # Read the JSON data from the file
+                    json_data = utils.read_json_file('test.json')
 
-        # Catch if bot is the messenger
-        if message.author == client.user:
-            return
+                    # Process the post information and send a formatted message to the Discord channel
+                    for post in json_data:
+                        title = post['title']
+                        score = post['score']
+                        url = post['url']
+                        author = post['author']
+                        permalink = post['permalink']
 
-        ## Check for channel
-        if message.channel.name == 'redxig':
+                        # Format the message
+                        post_info_message = f"**Title:** {title}\n" \
+                                            f"**Score:** {score}\n" \
+                                            f"**URL:** {url}\n" \
+                                            f"**Author:** {author}\n" \
+                                            f"**Permalink:** https://www.reddit.com{permalink}"
 
-            ## Simple hello 
-            if message.content.startswith('hello'):
-                await message.channel.send('Hello!')
+                        # Send the message to the Discord channel
+                        await message.channel.send(post_info_message)
 
-            ## Init Reddit
-            if message.content.startswith('init reddit'):
-                await message.channel.send('Reddit!')
-
-            elif message.content.startswith('give'):
-                # Read the JSON data from the file
-                json_data = utils.read_json_file('test.json')
-
-                # Process the post information and send a formatted message to the Discord channel
-                for post in json_data:
-                    title = post['title']
-                    score = post['score']
-                    url = post['url']
-                    author = post['author']
-                    permalink = post['permalink']
-
-                    # Format the message
-                    post_info_message = f"**Title:** {title}\n" \
-                                        f"**Score:** {score}\n" \
-                                        f"**URL:** {url}\n" \
-                                        f"**Author:** {author}\n" \
-                                        f"**Permalink:** https://www.reddit.com{permalink}"
-
-                    # Send the message to the Discord channel
-                    await message.channel.send(post_info_message)
-
-    client.run(DISCORD_TOKEN, log_handler=None)
-
+        self.client.run(self.discord_token, log_handler=None)
 
 if __name__ == "__main__":
-    # Init logger
-    LOGGER = init_logger()
+    # Load environment
+    env_path = '../.env'
+    load_dotenv(env_path)
 
-    # Init Discord client
-    init_discord_client(DISCORD_TOKEN)
-
-
+    # Initialize Discord bot
+    discord_bot = DiscordClass()
+    discord_bot.init_discord_client()
