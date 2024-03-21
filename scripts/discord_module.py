@@ -1,23 +1,16 @@
 from dotenv import load_dotenv
-
-import discord
-import json
 import os
-import utils
+import discord
+from logger import init_logger
 
-if __name__ == "__main__":
+global LOGGER 
+global console_handler
 
-    # Load environment variables from .env file
-    load_dotenv()
-
-    # Access environment variables required for Discord authentication
-    TOKEN = os.getenv('DISCORD_TOKEN')
-
+# Initialize Discord client
+def init_discord_client(token):
     intents = discord.Intents.default()
     intents.message_content = True
     client = discord.Client(intents=intents)
-
-
 
     @client.event
     async def on_ready():
@@ -25,7 +18,6 @@ if __name__ == "__main__":
 
     @client.event
     async def on_message(message):
-
         if message.author == client.user:
             return
 
@@ -54,4 +46,19 @@ if __name__ == "__main__":
                 # Send the message to the Discord channel
                 await message.channel.send(post_info_message)
 
-    client.run(TOKEN)
+    client.run(token, log_handler=None)
+
+
+if __name__ == "__main__":
+    # Load environment
+    env_path = '../.env'
+    load_dotenv(env_path)
+
+    # Init logger
+    LOGGER = init_logger()
+
+    # Init Discord client
+    discord_token = os.getenv('DISCORD_TOKEN')
+    init_discord_client(discord_token)
+
+
