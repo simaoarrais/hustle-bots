@@ -4,9 +4,9 @@ import os
 
 
 class RedditClass:
-    def __init__(self, read_only=True, logger=CustomLogger()):
+    def __init__(self, read_only=True, logger=CustomLogger().get_logger()):
         self.read_only = read_only
-        self.LOGGER = logger.get_logger()
+        self.LOGGER = logger
         self.reddit = self.access_reddit(
             os.getenv('REDDIT_USERNAME'), 
             os.getenv('REDDIT_PASSWORD'), 
@@ -45,7 +45,6 @@ class RedditClass:
 
         for post in top_posts:
             if len(top_posts_above_threshold) >= n_posts:
-                print("exit")
                 break  # Stop iterating when the desired number of posts is reached
 
             if post.score > threshold and not post.is_video:

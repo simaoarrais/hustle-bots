@@ -13,20 +13,24 @@ def read_json_file(filename):
         data = json.load(file)
     return data
 
-def save_json_file(file_name, file_data):
+def save_json_file(file_path=None, data=None, logger=None):
+    if data is None:
+        return None
+
     # Create output folder
     create_output_folder()
 
     # Define the file path
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    output_folder = os.path.join(current_dir, '..', 'output')  # Move up one directory to 'hustle-bots'
-    file_path = os.path.join(output_folder, file_name)
+    if file_path is None:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        output_folder = os.path.join(current_dir, '..', 'output')  # Move up one directory to 'hustle-bots'
+        file_path = os.path.join(output_folder, 'default.json')
 
     # If the file doesn't exist
     if not os.path.exists(file_path):
         with open(file_path, 'w') as json_file:
-            json.dump(file_data, json_file, indent=4)
-        print(f"SAVED FILE --- {file_path}")
+            json.dump(data, json_file, indent=4)
+        logger.info(f"SAVED FILE: {file_path}")
 
     else:
         # Prompt to overwrite the file
@@ -39,5 +43,5 @@ def save_json_file(file_name, file_data):
         elif x == 'y':
             os.remove(file_path)
             with open(file_path, 'w') as json_file:
-                json.dump(file_data, json_file)
-            print(f"SAVED FILE --- {file_path}")
+                json.dump(data, json_file, indent=4)
+            logger.info(f"SAVED FILE: {file_path}")
