@@ -32,21 +32,22 @@ class RedditClass:
             self.LOGGER.error("Reddit API connection failed. Exiting.")  # Log an error message if the Reddit API connection fails
             return None
 
-    def access_subreddit(self, subreddit="NatureIsFuckingLit"):
-        # Access a specific subreddit using the provided Reddit instance
-        self.LOGGER.info("Accessing subreddit: %s", subreddit)  # Log a message to indicate which subreddit is being accessed
-        return self.reddit.subreddit(subreddit)
+    def access_subreddit(self, subreddit_name):
+        if subreddit_name is None:
+            subreddit_name = "NatureIsFuckingLit"
 
-    def get_top_posts(self, subreddit, threshold=1000, n_posts=5, search_limit=15):
+        # Access a specific subreddit using the provided Reddit instance
+        self.LOGGER.info("Accessing subreddit: %s", subreddit_name)  # Log a message to indicate which subreddit is being accessed
+        return self.reddit.subreddit(subreddit_name)
+
+    def get_top_posts(self, subreddit_client, threshold=1000, search_limit=15):
         # Fetch the top posts from the subreddit based on the specified threshold and number of posts
-        top_posts = subreddit.top(time_filter='all', limit=search_limit)
+        top_posts = subreddit_client.top(time_filter='all', limit=search_limit)
 
         top_posts_above_threshold = []
+        print(threshold, search_limit)
 
         for post in top_posts:
-            if len(top_posts_above_threshold) >= n_posts:
-                break  # Stop iterating when the desired number of posts is reached
-
             if post.score > threshold and not post.is_video:
                 # Check if the post's score is above the threshold and if it is not a video
                 top_posts_above_threshold.append(post)
