@@ -2,6 +2,7 @@
 import discord
 import os
 import utils
+import asyncio
 
 from logger import CustomLogger
 from reddit_class import RedditClass
@@ -25,23 +26,24 @@ async def send_message(channel, message):
     if await channel.send(message):
         logger.info(f'Message was sent: {message}')
 
+
 # ---------------------------------------------------------------------------- #
 #                                    Events                                    #
 # ---------------------------------------------------------------------------- #
 
-
-# --------------------------------- On Ready --------------------------------- #
-
+@bot.event
+async def on_connect():
+    logger.info(f'{bot.user} is logged in.')
 
 @bot.event
 async def on_ready():
-    logger.info(f'{bot.user} is logged in.')
-
     channel = bot.get_channel(DISCORD_CHANNEL_ID)
-    message = f'**Hello G, we up and ready!**\n' \
+    content = f'**Hello G, we up and ready!**\n' \
                 f'```For further help, type \"{bot.command_prefix}h\" to check commands.```\n'
     
-    await send_message(channel, message)
+    message = await channel.send(content=content, delete_after=10)
+    if message:
+        logger.info(f'Message was sent: {message}')
 
 # ---------------------------------------------------------------------------- #
 #                                   Commands                                   #
@@ -52,30 +54,56 @@ async def on_ready():
 @bot.command()
 async def h(ctx):
     channel = bot.get_channel(DISCORD_CHANNEL_ID)
-    message = f'**!test** - To test the bot.\n' \
+    content = f'**!test** - To test the bot.\n' \
                 f'**Score:** {1}'
-    
-    await send_message(channel, message)
+
+    if await channel.send(content, delete_after=10):
+        logger.info(f'Message was sent: {content}')
 
 @bot.command()
 async def test(ctx):
-    channel = bot.get_channel(DISCORD_CHANNEL_ID)
-    message = f'I will give you a test back!'
+    content = f'I will give you a test back!'
+    message = await ctx.send(content)
 
-    await send_message(channel, message)
+    logger.info(f'Message was sent: {message}')
 
 # ---------------------------------- Reddit ---------------------------------- #
 @bot.command()
-async def reddit(ctx, subreddit_name, search_limit):
+async def reddit(ctx, subreddit_name, search_limit, file_name):
     channel = bot.get_channel(DISCORD_CHANNEL_ID)
 
     reddit = RedditClass(logger=logger)
     subreddit = reddit.access_subreddit(subreddit_name)
     top_posts = reddit.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
 
-    utils.save_json_file(data=top_posts, logger=logger)
-    message = 'Reddit!'
-    await send_message(channel, message)
+    def check(reaction, user):
+        return user != message.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+    
+    if not utils.save_json_file(file_path=file_name, data=top_posts, logger=logger):
+
+        content = f'The file **{file_name}** already exists.\n' \
+                    f'```Are you sure you want to overwrite the file?\n' \
+                    f'Agree: ✅\n' \
+                    f'Cancel: ❌```'
+        message = await ctx.send(content)
+
+        # Check for reaction
+        try:
+            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+        except asyncio.TimeoutError:
+            message = await ctx.send('👎')
+            logger.warning(f'{TimeoutError}')
+
+        # On correct reaction
+        else:
+            if str(reaction.emoji) == '❌':
+                message = await ctx.send('Action canceled. 👎')
+                
+            else:
+                utils.save_json_file(file_path=file_name, data=top_posts, overwrite=True, logger=logger)
+                message = await ctx.send('Action completed. 👍')
+        
+        logger.info(f'Message was sent: {message}')
 
 # ----------------------------------- Give ----------------------------------- #
 @bot.command()
@@ -101,6 +129,7 @@ async def give(ctx):
                             f"**Permalink:** https://www.reddit.com{permalink}"
 
         # Send the message to the Discord channel
-        await send_message(channel, message)
+        if await channel.send(message):
+            logger.info(f'Message was sent: {message}')
 
 bot.run(DISCORD_TOKEN, log_handler=None)

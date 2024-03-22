@@ -13,35 +13,25 @@ def read_json_file(filename):
         data = json.load(file)
     return data
 
-def save_json_file(file_path=None, data=None, logger=None):
+def save_json_file(file_path=None, data=None, overwrite=False, logger=None):
     if data is None:
-        return None
+        return False
+
+    if file_path is None:
+        file_path = 'default.json'
+    
+    if not '/' in file_path:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(current_dir, '..', 'output', file_path)
 
     # Create output folder
     create_output_folder()
 
-    # Define the file path
-    if file_path is None:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        output_folder = os.path.join(current_dir, '..', 'output')  # Move up one directory to 'hustle-bots'
-        file_path = os.path.join(output_folder, 'default.json')
-
-    # If the file doesn't exist
-    if not os.path.exists(file_path):
+    # If the file doesn't exist or overwrite is True
+    if not os.path.exists(file_path) or overwrite:
         with open(file_path, 'w') as json_file:
             json.dump(data, json_file, indent=4)
         logger.info(f"SAVED FILE: {file_path}")
+        return True
 
-    else:
-        # Prompt to overwrite the file
-        print(f"The following file already exists: {file_path}")
-        x = input(f"Please enter \"y\" or \"n\" to conclude action: ").lower()
-
-        if x == 'n':
-            pass
-
-        elif x == 'y':
-            os.remove(file_path)
-            with open(file_path, 'w') as json_file:
-                json.dump(data, json_file, indent=4)
-            logger.info(f"SAVED FILE: {file_path}")
+    return False
