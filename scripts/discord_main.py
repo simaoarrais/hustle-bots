@@ -69,41 +69,45 @@ async def test(ctx):
 
 # ---------------------------------- Reddit ---------------------------------- #
 @bot.command()
-async def reddit(ctx, subreddit_name, search_limit, file_name):
+async def reddit(ctx, subreddit_name, search_limit, file_name='default.json'):
     channel = bot.get_channel(DISCORD_CHANNEL_ID)
 
-    reddit = RedditClass(logger=logger)
-    subreddit = reddit.access_subreddit(subreddit_name)
-    top_posts = reddit.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
-
-    def check(reaction, user):
-        return user != message.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
-    
-    if not utils.save_json_file(file_path=file_name, data=top_posts, logger=logger):
-
+    # Check if file exists before creating RedditClass
+    if utils.check_file_exists_output(file_name):
         content = f'The file **{file_name}** already exists.\n' \
-                    f'```Are you sure you want to overwrite the file?\n' \
-                    f'Agree: ✅\n' \
-                    f'Cancel: ❌```'
+                  f'```Are you sure you want to overwrite the file?\n' \
+                  f'Agree: ✅\n' \
+                  f'Cancel: ❌```'
         message = await ctx.send(content)
+        logger.info(f'Message was sent: {message}')
+
+        def check(reaction, user):
+            return user != message.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
 
         # Check for reaction
         try:
-            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+            reaction, user = await bot.wait_for('reaction_add', timeout=20.0, check=check)
         except asyncio.TimeoutError:
             message = await ctx.send('👎')
-            logger.warning(f'{TimeoutError}')
+            logger.warning('TimeoutError')
+            return
 
         # On correct reaction
         else:
             if str(reaction.emoji) == '❌':
                 message = await ctx.send('Action canceled. 👎')
-                
-            else:
-                utils.save_json_file(file_path=file_name, data=top_posts, overwrite=True, logger=logger)
-                message = await ctx.send('Action completed. 👍')
-        
-        logger.info(f'Message was sent: {message}')
+                logger.info(f'Message was sent: {message}')
+                return
+
+
+    reddit = RedditClass(logger=logger)
+    subreddit = reddit.access_subreddit(subreddit_name)
+    top_posts = reddit.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
+    
+    utils.save_json_file(file_path=file_name, data=top_posts, overwrite=True, logger=logger)
+
+    message = await ctx.send('Action completed. 👍')
+    logger.info(f'Message was sent: {message}')
 
 # ----------------------------------- Give ----------------------------------- #
 @bot.command()

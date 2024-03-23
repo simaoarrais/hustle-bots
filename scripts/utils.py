@@ -13,6 +13,13 @@ def read_json_file(filename):
         data = json.load(file)
     return data
 
+def check_file_exists_output(file_path):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    output_folder = os.path.join(current_dir, '..', 'output')
+    if os.path.exists(output_folder):
+        return True
+    return False
+
 def save_json_file(file_path=None, data=None, overwrite=False, logger=None):
     if data is None:
         return False
