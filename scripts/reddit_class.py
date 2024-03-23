@@ -1,58 +1,87 @@
-import os
 import praw
 
 from logger import CustomLogger
 
 class RedditClass:
-    def __init__(self, read_only=True, logger=CustomLogger().get_logger()):
+    """Class for interacting with the Reddit API."""
+
+    def __init__(self, read_only=True, logger=None, credentials=None):
+        """
+        Initialize the RedditClass.
+
+        Args:
+            read_only (bool): Whether to operate in read-only mode (default is True).
+            logger (Logger): Optional logger object for logging messages.
+            credentials (dict): Dictionary containing Reddit API credentials.
+                Should include keys 'username', 'password', 'client_id', 'client_secret'.
+
+        """
         self.read_only = read_only
-        self.logger = logger
-        self.reddit = self.access_reddit(
-            os.getenv('REDDIT_USERNAME'), 
-            os.getenv('REDDIT_PASSWORD'), 
-            os.getenv('REDDIT_CLIENT_ID'), 
-            os.getenv('REDDIT_CLIENT_SECRET')
-        )
+        self.logger = logger or CustomLogger().get_logger()
+        self.reddit = self.access_reddit(credentials)
 
-    def access_reddit(self, reddit_username, reddit_password, client_id, client_secret):
+    def access_reddit(self, credentials):
+        """
+        Access Reddit API with provided credentials.
 
-        # Access Reddit API with the provided credentials
+        Args:
+            credentials (dict): Dictionary containing Reddit API credentials.
+
+        Returns:
+            praw.Reddit: Initialized Reddit API instance or None if connection fails.
+
+        """
         try:
             reddit = praw.Reddit(
-                username=reddit_username,
-                password=reddit_password,
-                client_id=client_id,
-                client_secret=client_secret,
+                username=credentials.get('username'),
+                password=credentials.get('password'),
+                client_id=credentials.get('client_id'),
+                client_secret=credentials.get('client_secret'),
                 user_agent="RedXIg"
             )
             reddit.read_only = self.read_only
-            self.logger.info("Reddit API connected.")  # Log a message when the connection is successful
+            self.logger.info("Reddit API connected.")
             return reddit
-        except Exception as e:
-            self.logger.error("Reddit API connection failed. Exiting.")  # Log an error message if the Reddit API connection fails
+        except praw.exceptions.APIException as e:
+            self.logger.error(f"Reddit API connection failed: {e}")
             return None
 
-    def access_subreddit(self, subreddit_name):
-        if subreddit_name is None:
-            subreddit_name = "NatureIsFuckingLit"
+    def access_subreddit(self, subreddit_name=None):
+        """
+        Access a specific subreddit using the provided Reddit instance.
 
-        # Access a specific subreddit using the provided Reddit instance
-        self.logger.info("Accessing subreddit: %s", subreddit_name)  # Log a message to indicate which subreddit is being accessed
+        Args:
+            subreddit_name (str): Name of the subreddit to access (default is None).
+
+        Returns:
+            praw.models.Subreddit: Subreddit object corresponding to the provided name.
+
+        """
+        subreddit_name = subreddit_name or "NatureIsFuckingLit"
+        self.logger.info("Accessing subreddit: %s", subreddit_name)
         return self.reddit.subreddit(subreddit_name)
 
     def get_top_posts(self, subreddit_client, threshold=1000, search_limit=15):
-        # Fetch the top posts from the subreddit based on the specified threshold and number of posts
+        """
+        Get top posts from a subreddit based on specified criteria.
+
+        Args:
+            subreddit_client (praw.models.Subreddit): Subreddit object to fetch posts from.
+            threshold (int): Minimum score threshold for posts to be considered (default is 1000).
+            search_limit (int): Maximum number of posts to search (default is 15).
+
+        Returns:
+            list: List of dictionaries containing data for top posts.
+
+        """
         top_posts = subreddit_client.top(time_filter='all', limit=search_limit)
 
         top_posts_above_threshold = []
-        print(threshold, search_limit)
-
         for post in top_posts:
             if post.score > threshold and not post.is_video:
-                # Check if the post's score is above the threshold and if it is not a video
                 top_posts_above_threshold.append(post)
-                self.logger.info("Post URL: %s | Score: %d", post.url, post.score)  # Log the URL and score of each valid post
-        
+                self.logger.info("Post URL: %s | Score: %d", post.url, post.score)
+
         posts_data = []
         for post in top_posts_above_threshold:
             post_data = {
