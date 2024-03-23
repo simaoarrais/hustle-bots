@@ -1,12 +1,12 @@
-from logger import CustomLogger
-import praw
 import os
+import praw
 
+from logger import CustomLogger
 
 class RedditClass:
     def __init__(self, read_only=True, logger=CustomLogger().get_logger()):
         self.read_only = read_only
-        self.LOGGER = logger
+        self.logger = logger
         self.reddit = self.access_reddit(
             os.getenv('REDDIT_USERNAME'), 
             os.getenv('REDDIT_PASSWORD'), 
@@ -26,10 +26,10 @@ class RedditClass:
                 user_agent="RedXIg"
             )
             reddit.read_only = self.read_only
-            self.LOGGER.info("Reddit API connected.")  # Log a message when the connection is successful
+            self.logger.info("Reddit API connected.")  # Log a message when the connection is successful
             return reddit
         except Exception as e:
-            self.LOGGER.error("Reddit API connection failed. Exiting.")  # Log an error message if the Reddit API connection fails
+            self.logger.error("Reddit API connection failed. Exiting.")  # Log an error message if the Reddit API connection fails
             return None
 
     def access_subreddit(self, subreddit_name):
@@ -37,7 +37,7 @@ class RedditClass:
             subreddit_name = "NatureIsFuckingLit"
 
         # Access a specific subreddit using the provided Reddit instance
-        self.LOGGER.info("Accessing subreddit: %s", subreddit_name)  # Log a message to indicate which subreddit is being accessed
+        self.logger.info("Accessing subreddit: %s", subreddit_name)  # Log a message to indicate which subreddit is being accessed
         return self.reddit.subreddit(subreddit_name)
 
     def get_top_posts(self, subreddit_client, threshold=1000, search_limit=15):
@@ -51,7 +51,7 @@ class RedditClass:
             if post.score > threshold and not post.is_video:
                 # Check if the post's score is above the threshold and if it is not a video
                 top_posts_above_threshold.append(post)
-                self.LOGGER.info("Post URL: %s | Score: %d", post.url, post.score)  # Log the URL and score of each valid post
+                self.logger.info("Post URL: %s | Score: %d", post.url, post.score)  # Log the URL and score of each valid post
         
         posts_data = []
         for post in top_posts_above_threshold:
