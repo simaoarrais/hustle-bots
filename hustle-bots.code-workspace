@@ -26,7 +26,7 @@
 			  "splitTerminals": [
 				{
 				  "name": "Discord",
-				  "commands": ["cd scripts/", "source venv/bin/activate", "clear", "python3 discord_module.py"]
+				  "commands": ["cd scripts/", "source venv/bin/activate", "clear", "python3 discord_main.py"]
 				}
 			  ]
 			},
@@ -41,7 +41,8 @@
 			  }
 		],
 		"cSpell.words": [
-			"dotenv"
+			"dotenv",
+			"tweepy"
 		]
 
 	}
