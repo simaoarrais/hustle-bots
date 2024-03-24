@@ -7,6 +7,7 @@ import asyncio
 from logger import CustomLogger
 from reddit_class import RedditClass
 from x_class import XClass
+from instagram_class import InstagramClass
 
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -122,6 +123,19 @@ async def x(ctx):
     }
     x_client = XClass(logger=logger, credentials=credentials)
     x_client.process_next_post()
+    content = f'I will give you a test back!'
+    message = await ctx.send(content)
+    logger.info(f'Message was sent: {message}')
+
+# ----------------------------------- Insta ---------------------------------- #
+@bot.command()
+async def instagram(ctx):
+    credentials = {
+        'username': os.getenv('INSTA_USERNAME'),
+        'password': os.getenv('INSTA_PASSWORD')
+    }
+    instagram_client = InstagramClass(logger=logger, credentials=credentials)
+    instagram_client.process_next_post()
     content = f'I will give you a test back!'
     message = await ctx.send(content)
     logger.info(f'Message was sent: {message}')
