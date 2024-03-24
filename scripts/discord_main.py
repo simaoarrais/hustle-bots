@@ -6,6 +6,7 @@ import asyncio
 
 from logger import CustomLogger
 from reddit_class import RedditClass
+from x_class import XClass
 
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -22,10 +23,6 @@ intents = discord.Intents.all()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-async def send_message(channel, message):
-    if await channel.send(message):
-        logger.info(f'Message was sent: {message}')
-
 
 # ---------------------------------------------------------------------------- #
 #                                    Events                                    #
@@ -37,6 +34,8 @@ async def on_connect():
 
 @bot.event
 async def on_ready():
+    utils.create_output_folder()
+
     channel = bot.get_channel(DISCORD_CHANNEL_ID)
     content = f'**Hello G, we up and ready!**\n' \
                 f'```For further help, type \"{bot.command_prefix}h\" to check commands.```\n'
@@ -64,14 +63,11 @@ async def h(ctx):
 async def test(ctx):
     content = f'I will give you a test back!'
     message = await ctx.send(content)
-
     logger.info(f'Message was sent: {message}')
 
 # ---------------------------------- Reddit ---------------------------------- #
 @bot.command()
 async def reddit(ctx, subreddit_name, search_limit, file_name='default.json'):
-    channel = bot.get_channel(DISCORD_CHANNEL_ID)
-
     # Check if file exists before creating RedditClass
     if utils.check_file_exists_output(file_name):
         content = f'The file **{file_name}** already exists.\n' \
@@ -99,14 +95,35 @@ async def reddit(ctx, subreddit_name, search_limit, file_name='default.json'):
                 logger.info(f'Message was sent: {message}')
                 return
 
-
-    reddit = RedditClass(logger=logger)
-    subreddit = reddit.access_subreddit(subreddit_name)
-    top_posts = reddit.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
+    credentials = {
+        'username': os.getenv('REDDIT_USERNAME'),
+        'password': os.getenv('REDDIT_PASSWORD'),
+        'client_id': os.getenv('REDDIT_CLIENT_ID'),
+        'client_secret': os.getenv('REDDIT_CLIENT_SECRET')
+    }
+    reddit_client = RedditClass(logger=logger, credentials=credentials)
+    subreddit = reddit_client.access_subreddit(subreddit_name)
+    top_posts = reddit_client.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
     
     utils.save_json_file(file_path=file_name, data=top_posts, overwrite=True, logger=logger)
 
     message = await ctx.send('Action completed. 👍')
+    logger.info(f'Message was sent: {message}')
+
+# ------------------------------------- X ------------------------------------ #
+@bot.command()
+async def x(ctx):
+    credentials = {
+        'bearer_token': os.getenv('X_BEARER_TOKEN'),
+        'api_key': os.getenv('X_API_KEY'),
+        'api_secret': os.getenv('X_API_SECRET'),
+        'access_token': os.getenv('X_ACCESS_TOKEN'),
+        'access_token_secret': os.getenv('X_ACCESS_TOKEN_SECRET')
+    }
+    x_client = XClass(logger=logger, credentials=credentials)
+    x_client.process_next_post()
+    content = f'I will give you a test back!'
+    message = await ctx.send(content)
     logger.info(f'Message was sent: {message}')
 
 # ----------------------------------- Give ----------------------------------- #
