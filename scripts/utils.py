@@ -78,3 +78,18 @@ def save_json_file(logger, file_path=None, data=[], overwrite=False, ):
         return True
 
     return False
+
+def get_next_post(file_path, logger):
+        if check_file_exists_output(file_path):
+            post_data = read_json_file(file_path)
+            if isinstance(post_data, list) and len(post_data) > 0:
+                logger.info(f'Fetch new post from {file_path}')
+                return post_data[0]
+        return None
+
+def remove_post_from_file(file_path, post_data, logger):
+    if check_file_exists_output(file_path):
+        posts = read_json_file(file_path)
+        updated_posts = [post for post in posts if post != post_data]
+        save_json_file(logger=logger, file_path=file_path, data=updated_posts, overwrite=True)
+        logger.info(f'Removed posted post from {file_path}.')

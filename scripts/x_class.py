@@ -14,9 +14,9 @@ class XClass:
                 Required keys: 'bearer_token', 'api_key', 'api_secret', 'access_token', 'access_token_secret'.
         """
         self.logger = logger or CustomLogger().get_logger()
-        self.x_client = self.access_x(credentials)
+        self.x_client = self.authenticate(credentials)
 
-    def access_x(self, credentials):
+    def authenticate(self, credentials):
         """
         Authenticates and returns a Tweepy Client object for accessing the Twitter API.
 
@@ -55,42 +55,14 @@ class XClass:
         Processes the next post from x_posts.json by uploading it as a tweet and then removing it from the file.
         """
         # Read the next post from x_posts.json
-        post_data = self.get_next_post()
+        post_data = utils.get_next_post(file_path='x_posts.json', logger=self.logger)
         if post_data:
+            title = post_data['title']
             # Post the tweet
-            tweet_text = f"{post_data['title']} {post_data['url']}"
+            tweet_text = f'{title}'
             self.upload_post(tweet_text)
 
             # Remove the posted post from x_posts.json
-            self.remove_post_from_file(post_data)
+            utils.remove_post_from_file(file_path='x_posts.json', post_data=post_data, logger=self.logger)
         else:
             self.logger.warning(f'No posts available to process.')
-
-    def get_next_post(self):
-        """
-        Reads the next post from x_posts.json and returns it.
-
-        Returns:
-            dict: Dictionary representing the next post data.
-        """
-        # Read x_posts.json and get the next post
-        if utils.check_file_exists_output('x_posts.json'):
-            post_data = utils.read_json_file('x_posts.json')
-            if isinstance(post_data, list) and len(post_data) > 0:
-                self.logger.info(f'Fetch new post from x_posts.json')
-                return post_data[0]  # Assuming the posts are stored as a list of dictionaries
-        return None
-
-    def remove_post_from_file(self, post_data):
-        """
-        Removes the posted post from x_posts.json.
-
-        Args:
-            post_data (dict): Dictionary representing the post data to be removed.
-        """
-        # Remove the posted post from x_posts.json
-        if utils.check_file_exists_output('x_posts.json'):
-            posts = utils.read_json_file('x_posts.json')
-            updated_posts = [post for post in posts if post != post_data]
-            utils.save_json_file(logger=self.logger, file_path='x_posts.json', data=updated_posts, overwrite=True)
-            self.logger.info(f'Removed posted post from x_posts.json.')
