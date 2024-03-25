@@ -18,6 +18,10 @@ load_dotenv()
 
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 DISCORD_CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID'))
+
+output_folder_dir = utils.create_output_folder()
+logs_folder_dir = utils.create_logs_folder()
+
 logger = CustomLogger().get_logger()
 
 intents = discord.Intents.all()
@@ -62,8 +66,6 @@ async def on_connect():
 
 @bot.event
 async def on_ready():
-    utils.create_output_folder()
-
     channel = bot.get_channel(DISCORD_CHANNEL_ID)
     content = f'**Hello G, we up and ready!**\n' \
                 f'```For further help, type \"{bot.command_prefix}h\" to check commands.```\n'
