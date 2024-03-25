@@ -19,8 +19,7 @@ load_dotenv()
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 DISCORD_CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID'))
 
-output_folder_dir = utils.create_output_folder()
-logs_folder_dir = utils.create_logs_folder()
+output_folder_dir, logs_output_dir, instagram_output_folder, x_output_folder = utils.create_output_folders()
 
 logger = CustomLogger().get_logger()
 
@@ -97,25 +96,42 @@ async def test(ctx):
 
 # ---------------------------------- Reddit ---------------------------------- #
 @bot.command()
-async def reddit(ctx, subreddit_name, search_limit, file_name='default.json'):
-    # Check if file exists before creating RedditClass
-    if utils.check_file_exists_output(file_name):
-        if await reaction_check(ctx=ctx, file_path=file_name):
-            credentials = {
+async def reddit(ctx, subreddit_name, search_limit, file_name=None):
+    file_name = file_name or 'default.json'
+    instagram_file_name = os.path.join(instagram_output_folder, f'instagram_{file_name}')
+    x_file_name = os.path.join(x_output_folder, f'x_{file_name}')
+
+    credentials = {
                 'username': os.getenv('REDDIT_USERNAME'),
                 'password': os.getenv('REDDIT_PASSWORD'),
                 'client_id': os.getenv('REDDIT_CLIENT_ID'),
                 'client_secret': os.getenv('REDDIT_CLIENT_SECRET')
             }
-            reddit_client = RedditClass(logger=logger, credentials=credentials)
-            subreddit = reddit_client.access_subreddit(subreddit_name)
+    reddit_client = RedditClass(logger=logger, credentials=credentials)
+    subreddit = reddit_client.access_subreddit(subreddit_name)
+
+    # Check if files exists before creating RedditClass
+    if not utils.check_file_exists_in_output(file_path=file_name) \
+        or not utils.check_file_exists_in_output(file_path=instagram_file_name) \
+            or not utils.check_file_exists_in_output(file_path=instagram_file_name):
+        top_posts = reddit_client.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
+        utils.save_json_file(file_path=file_name, data=top_posts, overwrite=True, logger=logger)
+        utils.save_json_file(file_path=instagram_file_name, data=top_posts, overwrite=True, logger=logger)
+        utils.save_json_file(file_path=x_file_name, data=top_posts, overwrite=True, logger=logger)
+
+        message = await ctx.send('Action completed. 👍')
+        logger.info(f'Message was sent: {message}')
+
+    else:
+        if await reaction_check(ctx=ctx, file_path=file_name):
             top_posts = reddit_client.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
-            
             utils.save_json_file(file_path=file_name, data=top_posts, overwrite=True, logger=logger)
+            utils.save_json_file(file_path=instagram_file_name, data=top_posts, overwrite=True, logger=logger)
+            utils.save_json_file(file_path=x_file_name, data=top_posts, overwrite=True, logger=logger)
 
             message = await ctx.send('Action completed. 👍')
-            logger.info(f'Message was sent: {message}')  
-
+            logger.info(f'Message was sent: {message}')
+            
 # ------------------------------------- X ------------------------------------ #
 @bot.command()
 async def x(ctx):
