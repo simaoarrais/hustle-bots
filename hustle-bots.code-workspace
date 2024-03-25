@@ -42,7 +42,9 @@
 		],
 		"cSpell.words": [
 			"dotenv",
-			"tweepy"
+			"insta",
+			"tweepy",
+			"praw",
 		]
 
 	}
