@@ -30,7 +30,9 @@ class ColorFormatter(logging.Formatter):
 
 # Logger class
 class CustomLogger:
-    def __init__(self, log_level=logging.INFO):
+    def __init__(self, log_level=None, logs_folder_dir=None):
+        log_level = log_level or logging.INFO
+        self.logs_folder_dir = logs_folder_dir or '../logs'
         self.logger = logging.getLogger()
         self.logger.setLevel(log_level)
 
@@ -44,8 +46,8 @@ class CustomLogger:
 
             # File handler
             current_datetime = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-            file_name = f'../logs/{current_datetime}.log'
-            file_handler = logging.FileHandler(file_name)
+            file_dir = f'{self.logs_folder_dir}/{current_datetime}.log'
+            file_handler = logging.FileHandler(file_dir)
             file_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(filename)s - %(message)s")
             file_handler.setFormatter(file_formatter)
             self.logger.addHandler(file_handler)
