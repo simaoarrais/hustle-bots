@@ -1,6 +1,8 @@
 import os
 import json
 
+import requests
+
 def create_output_folder():
     """
     Create the 'output' folder if it doesn't exist.
@@ -92,4 +94,35 @@ def remove_post_from_file(file_path, post_data, logger):
         posts = read_json_file(file_path)
         updated_posts = [post for post in posts if post != post_data]
         save_json_file(logger=logger, file_path=file_path, data=updated_posts, overwrite=True)
+        delete_file(file_path=file_path, logger=logger)
         logger.info(f'Removed posted post from {file_path}.')
+        
+def delete_file(file_path, logger):
+    """
+    Delete a file given its file path.
+
+    Args:
+        file_path (str): Path of the file to delete.
+
+    Returns:
+        bool: True if the file was deleted successfully, False otherwise.
+    """
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            return True
+        else:
+            logger.info(f'File \'{file_path}\' does not exist.')
+            return False
+    except Exception as e:
+        logger.warning(f'Error occurred while deleting file: {e}')
+        return False
+
+def save_post_image(file_path, post_id, post_url):
+    response = requests.get(post_url)
+    file_path = f'{post_id}.jpg'
+
+    with open(file_path, "wb") as file:
+        file.write(response.content)
+
+    return file_path
