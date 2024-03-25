@@ -5,18 +5,35 @@ import requests
 
 def create_output_folder():
     """
-    Create the 'output' folder if it doesn't exist.
+    Create the 'output' folder inside the 'hustle-bots' directory.
 
     Returns:
-        bool: True if the folder was created, False if it already exists.
+        str: The path of the output folder (either newly created or existing).
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    output_folder = os.path.join(current_dir, '..', 'output')
+    hustle_bots_dir = os.path.abspath(os.path.join(current_dir, '..'))  # Go up two levels to 'hustle-bots'
+    output_folder = os.path.join(hustle_bots_dir, 'output')
 
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-        return True
-    return False
+    
+    return output_folder
+
+def create_logs_folder():
+    """
+    Create the 'logs' folder inside the 'hustle-bots' directory.
+
+    Returns:
+        str: The path of the output folder (either newly created or existing).
+    """
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    hustle_bots_dir = os.path.abspath(os.path.join(current_dir, '..'))  # Go up two levels to 'hustle-bots'
+    logs_folder = os.path.join(hustle_bots_dir, 'logs')
+
+    if not os.path.exists(logs_folder):
+        os.makedirs(logs_folder)
+    
+    return logs_folder
 
 def check_file_exists_output(file_path):
     """
