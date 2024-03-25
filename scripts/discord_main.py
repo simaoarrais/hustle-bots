@@ -24,6 +24,33 @@ intents = discord.Intents.all()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+async def reaction_check(ctx, file_path):
+    content = f'The file **{file_path}** already exists.\n' \
+                  f'```Are you sure you want to overwrite the file?\n' \
+                  f'Agree: ✅\n' \
+                  f'Cancel: ❌```'
+    message = await ctx.send(content)
+    logger.info(f'Message was sent: {message}')
+
+    def check(reaction, user):
+        return user != message.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+
+    # Check for reaction
+    try:
+        reaction, user = await bot.wait_for('reaction_add', timeout=20.0, check=check)
+    except asyncio.TimeoutError:
+        message = await ctx.send('👎')
+        logger.warning('TimeoutError')
+        return False
+
+    # On correct reaction
+    else:
+        if str(reaction.emoji) == '❌':
+            message = await ctx.send('Action canceled. 👎')
+            logger.info(f'Message was sent: {message}')
+            return False
+    
+    return True
 
 # ---------------------------------------------------------------------------- #
 #                                    Events                                    #
@@ -71,45 +98,21 @@ async def test(ctx):
 async def reddit(ctx, subreddit_name, search_limit, file_name='default.json'):
     # Check if file exists before creating RedditClass
     if utils.check_file_exists_output(file_name):
-        content = f'The file **{file_name}** already exists.\n' \
-                  f'```Are you sure you want to overwrite the file?\n' \
-                  f'Agree: ✅\n' \
-                  f'Cancel: ❌```'
-        message = await ctx.send(content)
-        logger.info(f'Message was sent: {message}')
+        if await reaction_check(ctx=ctx, file_path=file_name):
+            credentials = {
+                'username': os.getenv('REDDIT_USERNAME'),
+                'password': os.getenv('REDDIT_PASSWORD'),
+                'client_id': os.getenv('REDDIT_CLIENT_ID'),
+                'client_secret': os.getenv('REDDIT_CLIENT_SECRET')
+            }
+            reddit_client = RedditClass(logger=logger, credentials=credentials)
+            subreddit = reddit_client.access_subreddit(subreddit_name)
+            top_posts = reddit_client.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
+            
+            utils.save_json_file(file_path=file_name, data=top_posts, overwrite=True, logger=logger)
 
-        def check(reaction, user):
-            return user != message.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
-
-        # Check for reaction
-        try:
-            reaction, user = await bot.wait_for('reaction_add', timeout=20.0, check=check)
-        except asyncio.TimeoutError:
-            message = await ctx.send('👎')
-            logger.warning('TimeoutError')
-            return
-
-        # On correct reaction
-        else:
-            if str(reaction.emoji) == '❌':
-                message = await ctx.send('Action canceled. 👎')
-                logger.info(f'Message was sent: {message}')
-                return
-
-    credentials = {
-        'username': os.getenv('REDDIT_USERNAME'),
-        'password': os.getenv('REDDIT_PASSWORD'),
-        'client_id': os.getenv('REDDIT_CLIENT_ID'),
-        'client_secret': os.getenv('REDDIT_CLIENT_SECRET')
-    }
-    reddit_client = RedditClass(logger=logger, credentials=credentials)
-    subreddit = reddit_client.access_subreddit(subreddit_name)
-    top_posts = reddit_client.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
-    
-    utils.save_json_file(file_path=file_name, data=top_posts, overwrite=True, logger=logger)
-
-    message = await ctx.send('Action completed. 👍')
-    logger.info(f'Message was sent: {message}')
+            message = await ctx.send('Action completed. 👍')
+            logger.info(f'Message was sent: {message}')  
 
 # ------------------------------------- X ------------------------------------ #
 @bot.command()
