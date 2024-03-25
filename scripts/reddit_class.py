@@ -85,15 +85,16 @@ class RedditClass:
         posts_data = []
         for post in top_posts_above_threshold:
             post_data = {
-                "title": post.title,
-                "score": post.score,
-                "url": post.url,
-                "author": post.author.name,
-                "created_utc": post.created_utc,
-                "is_video": post.is_video,
-                "permalink": post.permalink,
-                "num_comments": post.num_comments,
-                "thumbnail": post.thumbnail
+                'id': post.id,
+                'title': post.title,
+                'score': post.score,
+                'url': post.url,
+                'author': post.author.name,
+                'created_utc': post.created_utc,
+                'is_video': post.is_video,
+                'permalink': post.permalink,
+                'num_comments': post.num_comments,
+                'thumbnail': post.thumbnail
             }
             posts_data.append(post_data)
 
