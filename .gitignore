@@ -38,7 +38,7 @@ venv.bak/
 # Custom
 Scripts/output
 *.avi
-TODO
 run.txt
 notes.txt
-logs/*
+logs/
+output/

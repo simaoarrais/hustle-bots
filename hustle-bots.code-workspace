@@ -23,6 +23,15 @@
 			},
 
 			{
+				"splitTerminals": [
+				  {
+					"name": "Mongodb",
+					"commands": ["sudo systemctl start mongod"]
+				  }
+				]
+			},
+
+			{
 			  "splitTerminals": [
 				{
 				  "name": "Discord",
@@ -38,7 +47,8 @@
 					"commands": ["cd scripts/", "source venv/bin/activate", "clear"]
 				  }
 				]
-			  }
+			}
+
 		],
 		"cSpell.words": [
 			"dotenv",

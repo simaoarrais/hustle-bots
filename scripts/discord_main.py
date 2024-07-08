@@ -12,28 +12,32 @@ from instagram_class import InstagramClass
 from discord.ext import commands
 from dotenv import load_dotenv
 
-
-# Load environment
-load_dotenv()
-
-DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
-DISCORD_CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID'))
-
-output_folder_dir, logs_output_dir, instagram_output_folder, x_output_folder = utils.create_output_folders()
-
+# Create log and output folders
+output_folder_dir, logs_output_dir = utils.create_output_folders()
 logger = CustomLogger().get_logger()
 
+# Load Discord requisites
+load_dotenv()
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+DISCORD_CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID'))
 intents = discord.Intents.all()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-async def reaction_check(ctx, file_path):
-    content = f'The file **{file_path}** already exists.\n' \
-                  f'```Are you sure you want to overwrite the file?\n' \
-                  f'Agree: ✅\n' \
-                  f'Cancel: ❌```'
+# ---------------------------------------------------------------------------- #
+#                                Check Functions                               #
+# ---------------------------------------------------------------------------- #
+async def post_check(ctx, post_url):
+    content = f'**URL:** {post_url}\n' \
+        f'```Do you want to upload this post?\n' \
+        f'Agree: ✅\n' \
+        f'Cancel: ❌```'
     message = await ctx.send(content)
     logger.info(f'Message was sent: {message}')
+
+    # Pre-add reactions
+    await message.add_reaction('✅')
+    await message.add_reaction('❌')
 
     def check(reaction, user):
         return user != message.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
@@ -42,14 +46,14 @@ async def reaction_check(ctx, file_path):
     try:
         reaction, user = await bot.wait_for('reaction_add', timeout=20.0, check=check)
     except asyncio.TimeoutError:
-        message = await ctx.send('👎')
+        message = await ctx.send('❌ Action Canceled - Timeout.')
         logger.warning('TimeoutError')
         return False
 
     # On correct reaction
     else:
         if str(reaction.emoji) == '❌':
-            message = await ctx.send('Action canceled. 👎')
+            message = await ctx.send('❌ Action Canceled.')
             logger.info(f'Message was sent: {message}')
             return False
     
@@ -78,7 +82,7 @@ async def on_ready():
 # ---------------------------------------------------------------------------- #
 
 
-# -------------------------------- Help & Test ------------------------------- #
+# ----------------------------------- Help ----------------------------------- #
 @bot.command()
 async def h(ctx):
     channel = bot.get_channel(DISCORD_CHANNEL_ID)
@@ -88,19 +92,9 @@ async def h(ctx):
     if await channel.send(content, delete_after=10):
         logger.info(f'Message was sent: {content}')
 
-@bot.command()
-async def test(ctx):
-    content = f'I will give you a test back!'
-    message = await ctx.send(content)
-    logger.info(f'Message was sent: {message}')
-
 # ---------------------------------- Reddit ---------------------------------- #
 @bot.command()
-async def reddit(ctx, subreddit_name, search_limit, file_name=None):
-    file_name = file_name or 'default.json'
-    instagram_file_name = os.path.join(instagram_output_folder, f'instagram_{file_name}')
-    x_file_name = os.path.join(x_output_folder, f'x_{file_name}')
-
+async def reddit(ctx, subreddit_name, search_limit):
     credentials = {
                 'username': os.getenv('REDDIT_USERNAME'),
                 'password': os.getenv('REDDIT_PASSWORD'),
@@ -108,30 +102,10 @@ async def reddit(ctx, subreddit_name, search_limit, file_name=None):
                 'client_secret': os.getenv('REDDIT_CLIENT_SECRET')
             }
     reddit_client = RedditClass(logger=logger, credentials=credentials)
+
     subreddit = reddit_client.access_subreddit(subreddit_name)
-
-    # Check if files exists before creating RedditClass
-    if not utils.check_file_exists_in_output(file_path=file_name) \
-        or not utils.check_file_exists_in_output(file_path=instagram_file_name) \
-            or not utils.check_file_exists_in_output(file_path=instagram_file_name):
-        top_posts = reddit_client.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
-        utils.save_json_file(file_path=file_name, data=top_posts, overwrite=True, logger=logger)
-        utils.save_json_file(file_path=instagram_file_name, data=top_posts, overwrite=True, logger=logger)
-        utils.save_json_file(file_path=x_file_name, data=top_posts, overwrite=True, logger=logger)
-
-        message = await ctx.send('Action completed. 👍')
-        logger.info(f'Message was sent: {message}')
-
-    else:
-        if await reaction_check(ctx=ctx, file_path=file_name):
-            top_posts = reddit_client.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
-            utils.save_json_file(file_path=file_name, data=top_posts, overwrite=True, logger=logger)
-            utils.save_json_file(file_path=instagram_file_name, data=top_posts, overwrite=True, logger=logger)
-            utils.save_json_file(file_path=x_file_name, data=top_posts, overwrite=True, logger=logger)
-
-            message = await ctx.send('Action completed. 👍')
-            logger.info(f'Message was sent: {message}')
-            
+    top_post = reddit_client.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
+    
 # ------------------------------------- X ------------------------------------ #
 @bot.command()
 async def x(ctx):

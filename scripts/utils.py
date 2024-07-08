@@ -4,19 +4,6 @@ import json
 import requests
 
 def create_output_folders():
-    """
-    Create necessary folders for output and logs inside the 'hustle-bots' directory.
-
-    This function creates the following folders if they don't already exist:
-    - 'output': main output directory.
-    - 'logs': directory for log files.
-    - 'output/instagram': subdirectory for Instagram-related output.
-    - 'output/x': subdirectory for 'x' related output (replace 'x' with specific purpose).
-
-    Returns:
-        tuple: A tuple containing the paths of the created folders in the following order:
-               (output_folder, logs_folder, instagram_output_folder, x_output_folder)
-    """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     hustle_bots_dir = os.path.abspath(os.path.join(current_dir, '..'))  # Go up one level to 'hustle-bots'
 
@@ -27,16 +14,8 @@ def create_output_folders():
     logs_folder = os.path.join(hustle_bots_dir, 'logs')
     if not os.path.exists(logs_folder):
         os.makedirs(logs_folder)
-    
-    instagram_output_folder = os.path.join(output_folder, 'instagram')
-    if not os.path.exists(instagram_output_folder):
-        os.makedirs(instagram_output_folder)
-   
-    x_output_folder = os.path.join(output_folder, 'x')
-    if not os.path.exists(x_output_folder):
-        os.makedirs(x_output_folder)
 
-    return output_folder, logs_folder, instagram_output_folder, x_output_folder
+    return output_folder, logs_folder
 
 def check_file_exists_in_output(file_path):
     """
