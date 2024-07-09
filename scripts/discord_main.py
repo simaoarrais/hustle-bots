@@ -101,10 +101,17 @@ async def reddit(ctx, subreddit_name, search_limit):
                 'client_id': os.getenv('REDDIT_CLIENT_ID'),
                 'client_secret': os.getenv('REDDIT_CLIENT_SECRET')
             }
-    reddit_client = RedditClass(logger=logger, credentials=credentials)
-
+    
+    db_credentials = {
+                'host': os.getenv('DB_HOST'),
+                'port': os.getenv('DB_PORT'),
+                'client_id': os.getenv('DB_NAME')
+            } 
+    
+    reddit_client = RedditClass(logger, credentials, db_credentials)
     subreddit = reddit_client.access_subreddit(subreddit_name)
-    top_post = reddit_client.get_top_posts(subreddit_client=subreddit, search_limit=int(search_limit))
+    time_filter = 'week'
+    top_posts = reddit_client.save_top_posts(subreddit, time_filter, int(search_limit))
     
 # ------------------------------------- X ------------------------------------ #
 @bot.command()
@@ -116,11 +123,16 @@ async def x(ctx):
         'access_token': os.getenv('X_ACCESS_TOKEN'),
         'access_token_secret': os.getenv('X_ACCESS_TOKEN_SECRET')
     }
+
+    db_credentials = {
+                'host': os.getenv('DB_HOST'),
+                'port': os.getenv('DB_PORT'),
+                'client_id': os.getenv('DB_NAME')
+            } 
+    
+
     x_client = XClass(logger=logger, credentials=credentials)
     x_client.process_next_post()
-    content = f'I will give you a test back!'
-    message = await ctx.send(content)
-    logger.info(f'Message was sent: {message}')
 
 # ----------------------------------- Insta ---------------------------------- #
 @bot.command()

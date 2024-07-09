@@ -1,16 +1,23 @@
 import praw
 from prawcore import NotFound, Forbidden
-from pymongo import MongoClient
+
+import db_utils
 from logger import CustomLogger
 
 class RedditClass:
     """Class for interacting with the Reddit API."""
 
-    def __init__(self, read_only=True, logger=None, credentials=None):
-        self.read_only = read_only
+    def __init__(self, logger=None, credentials=None, db_credentials=None):
         self.logger = logger or CustomLogger().get_logger()
         self.reddit = self.access_reddit(credentials)
+        self.db = self.access_db(db_credentials)
 
+    def access_db(self, db_credentials):
+        host = db_credentials.get('host')
+        port = db_credentials.get('port')
+        db_name = db_credentials.get('db_name')
+        return db_utils.get_db(host, port, db_name)
+    
     def access_reddit(self, credentials):
         try:
             reddit = praw.Reddit(
@@ -20,7 +27,7 @@ class RedditClass:
                 client_secret=credentials.get('client_secret'),
                 user_agent="RedXIg"
             )
-            reddit.read_only = self.read_only
+            reddit.read_only = True
             self.logger.info("Reddit API connected.")
             return reddit
         except praw.exceptions.APIException as e:
@@ -32,8 +39,8 @@ class RedditClass:
         if subreddit_client.id:
             return subreddit_client
             
-    def get_top_posts(self, subreddit_client, search_limit=10):
-        top_posts = subreddit_client.top(time_filter='week', limit=search_limit)
+    def save_top_posts(self, subreddit_client, time_filter='week', search_limit=10):
+        top_posts = subreddit_client.top(time_filter=time_filter, limit=search_limit)
 
         posts_list = []
         for post in top_posts:
@@ -49,10 +56,10 @@ class RedditClass:
                 'num_comments': post.num_comments,
                 'thumbnail': post.thumbnail
             }
-            posts_list.append(post_data)
             self.logger.info("Post URL: %s | Score: %d", post.url, post.score)
-        
-        
 
-
+            collection = self.db['posts']
+            if db_utils.insert_document(collection, post_data):
+                posts_list.append(post_data)
+    
         return posts_list
