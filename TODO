@@ -1,2 +1,3 @@
-- Reddit Class guardar posts na mongo
-    - Criar connect para o mongo
+- X postar do Mongo
+    - Postar video
+    - Postar foto
