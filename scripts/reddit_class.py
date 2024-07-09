@@ -9,16 +9,16 @@ class RedditClass:
 
     def __init__(self, logger=None, credentials=None, db_credentials=None):
         self.logger = logger or CustomLogger().get_logger()
-        self.reddit = self.access_reddit(credentials)
-        self.db = self.access_db(db_credentials)
+        self.reddit = self.authenticate(credentials)
+        self.db = self.authenticate_db(db_credentials)
 
-    def access_db(self, db_credentials):
+    def authenticate_db(self, db_credentials):
         host = db_credentials.get('host')
         port = db_credentials.get('port')
         db_name = db_credentials.get('db_name')
         return db_utils.get_db(host, port, db_name)
     
-    def access_reddit(self, credentials):
+    def authenticate(self, credentials):
         try:
             reddit = praw.Reddit(
                 username=credentials.get('username'),
@@ -54,7 +54,10 @@ class RedditClass:
                 'is_video': post.is_video,
                 'permalink': post.permalink,
                 'num_comments': post.num_comments,
-                'thumbnail': post.thumbnail
+                'thumbnail': post.thumbnail,
+                'media': post.media,
+                'status_x': False,
+                'status_insta': False
             }
             self.logger.info("Post URL: %s | Score: %d", post.url, post.score)
 

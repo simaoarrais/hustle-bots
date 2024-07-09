@@ -13,8 +13,8 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 # Create log and output folders
-output_folder_dir, logs_output_dir = utils.create_output_folders()
 logger = CustomLogger().get_logger()
+output_folder_dir, logs_output_dir = utils.create_output_folders()
 
 # Load Discord requisites
 load_dotenv()
@@ -105,7 +105,7 @@ async def reddit(ctx, subreddit_name, search_limit):
     db_credentials = {
                 'host': os.getenv('DB_HOST'),
                 'port': os.getenv('DB_PORT'),
-                'client_id': os.getenv('DB_NAME')
+                'db_name': os.getenv('DB_NAME')
             } 
     
     reddit_client = RedditClass(logger, credentials, db_credentials)
@@ -127,12 +127,11 @@ async def x(ctx):
     db_credentials = {
                 'host': os.getenv('DB_HOST'),
                 'port': os.getenv('DB_PORT'),
-                'client_id': os.getenv('DB_NAME')
+                'db_name': os.getenv('DB_NAME')
             } 
-    
 
-    x_client = XClass(logger=logger, credentials=credentials)
-    x_client.process_next_post()
+    x_client = XClass(logger, credentials, db_credentials)
+    x_client.upload_next_post()
 
 # ----------------------------------- Insta ---------------------------------- #
 @bot.command()

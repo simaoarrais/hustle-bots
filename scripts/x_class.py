@@ -1,12 +1,13 @@
 import tweepy
+import db_utils
 import utils
-
 from logger import CustomLogger
 
 class XClass:
-    def __init__(self, logger=None, credentials=None):
+    def __init__(self, logger=None, credentials=None, db_credentials=None):
         self.logger = logger or CustomLogger().get_logger()
         self.x_client, self.x_api = self.authenticate(credentials)
+        self.db = self.authenticate_db(db_credentials)
 
     def authenticate(self, credentials):
         try:
@@ -27,6 +28,25 @@ class XClass:
         except tweepy.TweepyException as e:
             return None
 
-    def upload_next_post(self, tweet_text, media_id):
-        post = self.x_client.create_tweet(text=tweet_text, media_ids=[media_id])
+    def authenticate_db(self, db_credentials):
+        host = db_credentials.get('host')
+        port = db_credentials.get('port')
+        db_name = db_credentials.get('db_name')
+        return db_utils.get_db(host, port, db_name)
+
+    def upload_next_post(self):
+        collection = self.db['posts']
+        post = db_utils.get_next_post_x(collection)
+
+        if post['is_video']:
+            media_path = utils.download_video(post)
+        else:
+            media_path = utils.download_photo(post)
+
+        media = self.x_api.media_upload(media_path)
+        title = utils.standardize_title(post['title'])
+
+        post = self.x_client.create_tweet(text=title, media_ids=[media.media_id_string])
         self.logger.info(f'UPLOAD POST: {post}')
+        # post = self.x_client.create_tweet(text=title, media_ids=[media.media_id_string])
+        # self.logger.info(f'UPLOAD POST: {post}')

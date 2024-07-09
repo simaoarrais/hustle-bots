@@ -1,9 +1,9 @@
-from pymongo import MongoClient, errors
+import pymongo
 
 def get_db(host, port, db_name):
     port = int(port)
     db_name = str(db_name)
-    client = MongoClient(host, port)
+    client = pymongo.MongoClient(host, port)
     return client[db_name]
 
 def get_collection(db, collection):
@@ -24,3 +24,10 @@ def insert_document(collection, post):
     # except Exception as e:
     #     print("An error occurred:", e)
     #     return False
+
+def get_next_post_x(collection):
+    post = collection.find_one(
+        { "status_x": False },  # Filter where status_x is False
+        sort=[("score", pymongo.DESCENDING)]  # Sort by score in descending order
+    )
+    return post
