@@ -25,9 +25,29 @@ def insert_document(collection, post):
     #     print("An error occurred:", e)
     #     return False
 
+def update_post_status_insta(collection, post):
+    result = collection.update_one(
+        {"id": post['id']},    # Filter: find the document with the given post ID
+        {"$set": {"status_insta": True}}  # Update: set status_insta to True
+    )
+    return result
+
+def reject_post(collection, post):
+    result = collection.find_one_and_delete(
+        {"id": post['id']}  # Filter: find the document with the given post ID
+    )
+    return result
+
 def get_next_post_x(collection):
-    post = collection.find_one(
+    result = collection.find_one(
         { "status_x": False },  # Filter where status_x is False
         sort=[("score", pymongo.DESCENDING)]  # Sort by score in descending order
     )
-    return post
+    return result
+
+def get_next_post_insta(collection):
+    result = collection.find_one(
+        { "status_insta": False },  # Filter where status_x is False
+        sort=[("score", pymongo.DESCENDING)]  # Sort by score in descending order
+    )
+    return result

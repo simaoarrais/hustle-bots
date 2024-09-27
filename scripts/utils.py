@@ -25,6 +25,7 @@ def standardize_title(title):
     return standard_title
 
 def download_video(post):
+    print(post)
     url = post['url']
     filename = post['id']
     output = f'../output/'
@@ -33,7 +34,7 @@ def download_video(post):
     fallback_url = post['media']['reddit_video']['fallback_url']
     pattern = r'(?<=DASH_)\d+'
     matches = re.findall(pattern, fallback_url)
-    quality = matches[0]
+    quality = int(matches[0])
 
     if not os.path.exists(file_path):
         RedDownloader.Download(url , output=filename, destination=output, quality=quality)

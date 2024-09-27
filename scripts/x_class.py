@@ -21,7 +21,7 @@ class XClass:
 
             auth = tweepy.OAuthHandler(consumer_key=credentials.get('api_key'), consumer_secret=credentials.get('api_secret'))
             auth.set_access_token(credentials.get('access_token'), credentials.get('access_token_secret'))
-            x_api = tweepy.API(auth)
+            x_api = tweepy.API(auth, wait_on_rate_limit=True)
 
             self.logger.info(f'X has logged in.')
             return x_client, x_api
@@ -38,15 +38,21 @@ class XClass:
         collection = self.db['posts']
         post = db_utils.get_next_post_x(collection)
 
-        if post['is_video']:
-            media_path = utils.download_video(post)
-        else:
-            media_path = utils.download_photo(post)
+        try:
+            
+            title = utils.standardize_title(post['title'])
+            if post['is_video']:
+                media_path = utils.download_video(post)
+                print(media_path)
+                media = self.x_api.media_upload(media_path, chunked=True, media_category="tweet_video")
+            else:
+                media_path = utils.download_photo(post)
+                media = self.x_api.media_upload(media_path)
 
-        media = self.x_api.media_upload(media_path)
-        title = utils.standardize_title(post['title'])
+            print(media)
+            
+            tweet = self.x_api.update_status(status=title, media_ids=[media.media_id_string])
+            self.logger.info(f'UPLOAD POST: {tweet}')
 
-        post = self.x_client.create_tweet(text=title, media_ids=[media.media_id_string])
-        self.logger.info(f'UPLOAD POST: {post}')
-        # post = self.x_client.create_tweet(text=title, media_ids=[media.media_id_string])
-        # self.logger.info(f'UPLOAD POST: {post}')
+        except Exception as e:
+            self.logger.error(f'Error uploading post: {e}')

@@ -44,11 +44,11 @@ async def post_check(ctx, post_url):
 
     # Check for reaction
     try:
-        reaction, user = await bot.wait_for('reaction_add', timeout=20.0, check=check)
+        reaction, user = await bot.wait_for('reaction_add', timeout=60, check=check)
     except asyncio.TimeoutError:
         message = await ctx.send('❌ Action Canceled - Timeout.')
         logger.warning('TimeoutError')
-        return False
+        return None
 
     # On correct reaction
     else:
@@ -56,7 +56,8 @@ async def post_check(ctx, post_url):
             message = await ctx.send('❌ Action Canceled.')
             logger.info(f'Message was sent: {message}')
             return False
-    
+
+    logger.info(f'POST ACCEPTED: {post_url}')
     return True
 
 # ---------------------------------------------------------------------------- #
@@ -116,6 +117,8 @@ async def reddit(ctx, subreddit_name, search_limit):
 # ------------------------------------- X ------------------------------------ #
 @bot.command()
 async def x(ctx):
+    x = None
+
     credentials = {
         'bearer_token': os.getenv('X_BEARER_TOKEN'),
         'api_key': os.getenv('X_API_KEY'),
@@ -128,49 +131,39 @@ async def x(ctx):
                 'host': os.getenv('DB_HOST'),
                 'port': os.getenv('DB_PORT'),
                 'db_name': os.getenv('DB_NAME')
-            } 
-
-    x_client = XClass(logger, credentials, db_credentials)
-    x_client.upload_next_post()
+            }
+    
+    if not x:
+        x = XClass(logger, credentials, db_credentials)
+    x.upload_next_post()
 
 # ----------------------------------- Insta ---------------------------------- #
 @bot.command()
 async def instagram(ctx):
+    instagram = None
+    
     credentials = {
         'username': os.getenv('INSTA_USERNAME'),
         'password': os.getenv('INSTA_PASSWORD')
     }
-    instagram_client = InstagramClass(logger=logger, credentials=credentials)
-    instagram_client.process_next_post()
-    content = f'I will give you a test back!'
-    message = await ctx.send(content)
-    logger.info(f'Message was sent: {message}')
 
-# ----------------------------------- Give ----------------------------------- #
-@bot.command()
-async def give(ctx):
-    channel = bot.get_channel(DISCORD_CHANNEL_ID)
-
-    # Read the JSON data from the file
-    json_data = utils.read_json_file('../output/default.json')
-
-    # Process the post information and send a formatted message to the Discord channel
-    for post in json_data:
-        title = post['title']
-        score = post['score']
-        url = post['url']
-        author = post['author']
-        permalink = post['permalink']
-
-        # Format the message
-        message = f"**Title:** {title}\n" \
-                            f"**Score:** {score}\n" \
-                            f"**URL:** {url}\n" \
-                            f"**Author:** {author}\n" \
-                            f"**Permalink:** https://www.reddit.com{permalink}"
-
-        # Send the message to the Discord channel
-        if await channel.send(message):
-            logger.info(f'Message was sent: {message}')
+    db_credentials = {
+                'host': os.getenv('DB_HOST'),
+                'port': os.getenv('DB_PORT'),
+                'db_name': os.getenv('DB_NAME')
+            }
+    
+    if not instagram:
+        instagram = InstagramClass(logger, credentials, db_credentials)
+    
+    post = instagram.get_next_post()
+    
+    check = await post_check(ctx, post['url'])
+    if check:
+        instagram.upload_post(post)
+        message = await ctx.send(f'Posted ✅')
+        logger.info(f'Message was sent: {message}')
+    elif check is False:
+        instagram.reject_post(post)
 
 bot.run(DISCORD_TOKEN, log_handler=None)
